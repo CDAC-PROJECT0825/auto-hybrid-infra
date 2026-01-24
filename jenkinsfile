@@ -50,7 +50,7 @@ pipeline {
         }
 
         stage('Deploy to Stage') {
-            agent { label 'stage-agent' }
+            agent { label 'Stage-Agent' }
             steps {
                 sh """
                 docker rm -f stage-app || true
@@ -62,7 +62,7 @@ pipeline {
         }
 
         stage('Deploy to PreProd') {
-            agent { label 'preprod-agent' }
+            agent { label 'Preprod-Agent' }
             steps {
                 sh """
                 docker rm -f preprod-app || true
@@ -74,7 +74,7 @@ pipeline {
         }
 
         stage('Deploy to Prod') {
-            agent { label 'prod-agent' }
+            agent { label 'Prod-Agent' }
             steps {
                 sh """
                 docker rm -f prod-app || true
