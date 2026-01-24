@@ -1,0 +1,97 @@
+pipeline {
+    agent none
+
+    environment {
+        IMAGE_NAME = "deoatharva4/python_app"
+        IMAGE_TAG  = "latest"
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            agent any
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/CDAC-PROJECT0825/auto-hybrid-infra.git'
+            }
+        }
+
+        /* 🚫 Docker Hub delete DISABLED (API no longer supports JWT) */
+        stage('Delete Image on Docker Hub') {
+            agent any
+            steps {
+                echo "Skipping Docker Hub delete – tag overwrite is sufficient"
+            }
+        }
+
+        stage('Build Docker Image') {
+            agent any
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+
+        stage('Push Image to Docker Hub') {
+            agent any
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DH_USER',
+                        passwordVariable: 'DH_PASS'
+                    )
+                ]) {
+                    sh '''
+                        echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
+                        docker push deoatharva4/python_app:latest
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Stage') {
+            agent { label 'stage-agent' }
+            steps {
+                sh """
+                docker rm -f stage-app || true
+                docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true
+                docker pull ${IMAGE_NAME}:${IMAGE_TAG}
+                docker run -d --name stage-app -p 5001:5000 ${IMAGE_NAME}:${IMAGE_TAG}
+                """
+            }
+        }
+
+        stage('Deploy to PreProd') {
+            agent { label 'preprod-agent' }
+            steps {
+                sh """
+                docker rm -f preprod-app || true
+                docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true
+                docker pull ${IMAGE_NAME}:${IMAGE_TAG}
+                docker run -d --name preprod-app -p 5002:5000 ${IMAGE_NAME}:${IMAGE_TAG}
+                """
+            }
+        }
+
+        stage('Deploy to Prod') {
+            agent { label 'prod-agent' }
+            steps {
+                sh """
+                docker rm -f prod-app || true
+                docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true
+                docker pull ${IMAGE_NAME}:${IMAGE_TAG}
+                docker run -d --name prod-app -p 80:5000 ${IMAGE_NAME}:${IMAGE_TAG}
+                """
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Pipeline completed successfully across all environments"
+        }
+        failure {
+            echo "❌ Pipeline failed"
+        }
+    }
+}
