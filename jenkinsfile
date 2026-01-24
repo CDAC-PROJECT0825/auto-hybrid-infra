@@ -50,7 +50,11 @@ pipeline {
         }
 
         stage('Deploy to Stage') {
+<<<<<<< HEAD
             agent { label 'Stage-Agent' }
+=======
+            agent { label 'stage-agent' }
+>>>>>>> 6fe291a020882c732e50a4af2e50f71122f62275
             steps {
                 sh """
                 docker rm -f stage-app || true
@@ -62,7 +66,11 @@ pipeline {
         }
 
         stage('Deploy to PreProd') {
+<<<<<<< HEAD
             agent { label 'Preprod-Agent' }
+=======
+            agent { label 'preprod-agent' }
+>>>>>>> 6fe291a020882c732e50a4af2e50f71122f62275
             steps {
                 sh """
                 docker rm -f preprod-app || true
@@ -74,7 +82,11 @@ pipeline {
         }
 
         stage('Deploy to Prod') {
+<<<<<<< HEAD
             agent { label 'Prod-Agent' }
+=======
+            agent { label 'prod-agent' }
+>>>>>>> 6fe291a020882c732e50a4af2e50f71122f62275
             steps {
                 sh """
                 docker rm -f prod-app || true
