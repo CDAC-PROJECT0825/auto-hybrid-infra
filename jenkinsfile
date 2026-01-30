@@ -36,11 +36,11 @@ pipeline {
             steps {
                 sh '''
                 sonar-scanner \
-                    -Dsonar.projectKey=devinfrax \
-                    -Dsonar.projectName=DevinfraX \
-                    -Dsonar.sources=. \
-                    -Dsonar.host.url=http://localhost:9000 \
-                    -Dsonar.login=sqp_4317b16b73934ad274cad3a1f01bdd3211e13740
+                    sonar-scanner \
+                        -Dsonar.projectKey=DevinfraX \
+                        -Dsonar.sources=. \
+                         -Dsonar.host.url=http://127.0.0.1:9000 \
+                         -Dsonar.login=sqp_b1fca4ed91c95ce4afd00fcaf5f603fb84ee6215
                 '''
             }
         }
