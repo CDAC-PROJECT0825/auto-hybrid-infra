@@ -16,7 +16,6 @@ pipeline {
             }
         }
 
-        /* 🚫 Docker Hub delete DISABLED (API no longer supports JWT) */
         stage('Delete Image on Docker Hub') {
             agent any
             steps {
@@ -28,6 +27,21 @@ pipeline {
             agent any
             steps {
                 sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            agent { label 'Stage-Agent' }
+
+            steps {
+                sh '''
+                sonar-scanner \
+                    -Dsonar.projectKey=devinfrax \
+                    -Dsonar.projectName=DevinfraX \
+                    -Dsonar.sources=. \
+                    -Dsonar.host.url=http://localhost:9000 \
+                    -Dsonar.login=sqp_4317b16b73934ad274cad3a1f01bdd3211e13740
+                '''
             }
         }
 
@@ -48,30 +62,8 @@ pipeline {
                 }
             }
         }
-        stage('SonarQube Analysis') {
-           agent { label 'Stage-Agent' }
-
-        environment {
-            SONAR_HOST_URL = "http://localhost:9000"
-        }
-
-        steps {
-            withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
-                sh """
-                sonar-scanner \
-                  -Dsonar.projectKey=cdac-auto-hybrid \
-                  -Dsonar.projectName=cdac-auto-hybrid \
-                  -Dsonar.sources=. \
-                  -Dsonar.host.url=${SONAR_HOST_URL} \
-                  -Dsonar.login=${SONAR_TOKEN}
-                """
-            }
-        }
-    }
-
 
         stage('Deploy to Stage') {
-
             agent { label 'Stage-Agent' }
 
             steps {
@@ -85,10 +77,8 @@ pipeline {
         }
 
         stage('Deploy to PreProd') {
-
             agent { label 'Preprod-Agent' }
 
-          
             steps {
                 sh """
                 docker rm -f preprod-app || true
@@ -100,9 +90,7 @@ pipeline {
         }
 
         stage('Deploy to Prod') {
-
             agent { label 'Prod-Agent' }
-
 
             steps {
                 sh """
