@@ -59,7 +59,10 @@ pipeline {
             withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
                 sh """
                 sonar-scanner \
-                 
+                   -Dsonar.projectKey=DevinfraX \
+                    -Dsonar.sources=. \
+                    -Dsonar.host.url=http://127.0.0.1:9000 \
+                    -Dsonar.login=sqp_0b28150d232f6c2c3b749624cc783e3feb068566
                 """
             }
         }
