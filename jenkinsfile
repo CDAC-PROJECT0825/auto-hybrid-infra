@@ -48,6 +48,27 @@ pipeline {
                 }
             }
         }
+        stage('SonarQube Analysis') {
+           agent { label 'Stage-Agent' }
+
+        environment {
+            SONAR_HOST_URL = "http://localhost:9000"
+        }
+
+        steps {
+            withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                sh """
+                sonar-scanner \
+                  -Dsonar.projectKey=cdac-auto-hybrid \
+                  -Dsonar.projectName=cdac-auto-hybrid \
+                  -Dsonar.sources=. \
+                  -Dsonar.host.url=${SONAR_HOST_URL} \
+                  -Dsonar.login=${SONAR_TOKEN}
+                """
+            }
+        }
+    }
+
 
         stage('Deploy to Stage') {
 
