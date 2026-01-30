@@ -4,7 +4,6 @@ pipeline {
     environment {
         IMAGE_NAME = "deoatharva4/python_app"
         IMAGE_TAG  = "latest"
-        SONAR_HOST = "http://127.0.0.1:9000"
     }
 
     stages {
@@ -17,19 +16,11 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            agent { label 'Stage-Agent' }
-            environment {
-                SONAR_TOKEN = credentials('sonarqube-token')
-            }
+        /* 🚫 Docker Hub delete DISABLED (API no longer supports JWT) */
+        stage('Delete Image on Docker Hub') {
+            agent any
             steps {
-                sh """
-                sonar-scanner \
-                  -Dsonar.projectKey=DevinfraX \
-                  -Dsonar.sources=. \
-                  -Dsonar.host.url=${SONAR_HOST} \
-                  -Dsonar.login=${SONAR_TOKEN}
-                """
+                echo "Skipping Docker Hub delete – tag overwrite is sufficient"
             }
         }
 
@@ -50,42 +41,70 @@ pipeline {
                         passwordVariable: 'DH_PASS'
                     )
                 ]) {
-                    sh """
+                    sh '''
                         echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
-                        docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                    """
+                        docker push deoatharva4/python_app:latest
+                    '''
                 }
             }
         }
+        stage('SonarQube Analysis') {
+           agent { label 'Stage-Agent' }
+
+        environment {
+            SONAR_HOST_URL = "http://localhost:9000"
+        }
+
+        steps {
+            withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                sh """
+                sonar-scanner \
+                 
+                """
+            }
+        }
+    }
+
 
         stage('Deploy to Stage') {
+
             agent { label 'Stage-Agent' }
+
             steps {
                 sh """
-                docker pull ${IMAGE_NAME}:${IMAGE_TAG}
                 docker rm -f stage-app || true
+                docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true
+                docker pull ${IMAGE_NAME}:${IMAGE_TAG}
                 docker run -d --name stage-app -p 5001:5000 ${IMAGE_NAME}:${IMAGE_TAG}
                 """
             }
         }
 
         stage('Deploy to PreProd') {
+
             agent { label 'Preprod-Agent' }
+
+          
             steps {
                 sh """
-                docker pull ${IMAGE_NAME}:${IMAGE_TAG}
                 docker rm -f preprod-app || true
+                docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true
+                docker pull ${IMAGE_NAME}:${IMAGE_TAG}
                 docker run -d --name preprod-app -p 5002:5000 ${IMAGE_NAME}:${IMAGE_TAG}
                 """
             }
         }
 
         stage('Deploy to Prod') {
+
             agent { label 'Prod-Agent' }
+
+
             steps {
                 sh """
-                docker pull ${IMAGE_NAME}:${IMAGE_TAG}
                 docker rm -f prod-app || true
+                docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true
+                docker pull ${IMAGE_NAME}:${IMAGE_TAG}
                 docker run -d --name prod-app -p 80:5000 ${IMAGE_NAME}:${IMAGE_TAG}
                 """
             }
@@ -94,10 +113,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ CI/CD Pipeline executed successfully across Stage, PreProd, and Prod"
+            echo "✅ Pipeline completed successfully across all environments"
         }
         failure {
-            echo "❌ Pipeline failed — check logs"
+            echo "❌ Pipeline failed"
         }
     }
 }
