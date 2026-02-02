@@ -1,5 +1,7 @@
 # Use Python 3.15 Alpine as the base image
 FROM python:3.15-rc-alpine3.23
+RUN apk update && apk upgrade --no-cache
+
 
 # Set working directory inside the container
 WORKDIR /app
