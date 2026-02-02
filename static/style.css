@@ -1,0 +1,36 @@
+body {
+    background: linear-gradient(to right, #e3f2fd, #f8f9fa);
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* Header */
+.header {
+    background-color: #0d6efd;
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+.header img {
+    width: 80px;
+    margin-bottom: 10px;
+}
+
+.header h1 {
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+/* Footer */
+.footer {
+    background-color: #212529;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    margin-top: 50px;
+}
+
+.footer p {
+    margin: 5px 0;
+    font-size: 14px;
+}

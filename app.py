@@ -1,27 +1,16 @@
-from flask import Flask, jsonify
+from flask import Flask, render_template
 
 app = Flask(__name__)
 
-
 @app.route("/")
 def home():
-    return "🚀 Flask Application is Running!"
-
-
-@app.route("/health")
-def health():
-    return jsonify(status="UP", message="Application is healthy")
-
-
-@app.route("/add/<int:a>/<int:b>")
-def add(a, b):
-    return jsonify(
-        operation="addition",
-        a=a,
-        b=b,
-        result=a + b
-    )
-
+    members = [
+        {"name": "Atharva Chaudhari", "prn": "250844223007"},
+        {"name": "Atharva Deo", "prn": "250844223010"},
+        {"name": "Rushikesh Khot", "prn": "250844223037"},
+        {"name": "Saurabh Tekale", "prn": "250844223052"}
+    ]
+    return render_template("index.html", members=members)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(debug=True)
